@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hot Limit: Tree Request Form</title>
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+        @font-face { 
+            font-family: 'Handform'; 
+            src: url('./handform.ttf') format('truetype'); 
+            font-weight: normal; 
+            font-style: normal; 
+        } 
+
+        body { 
+            font-family: 'Handform', sans-serif; 
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            place-items: center; 
+            background-color: #fff1d4;
+        }
+
+        .page-centerer {
+            text-align: center;
+            width: 100%;
+            max-width: 850px;
+        }
+
+        /* CARD CONTAINER MATCHING THE ENVIRONMENTAL MAP THEME */
+        .card-container {
+            background-color: #fff9ee;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            box-sizing: border-box;
+            margin: 15px auto;
+            text-align: center;
+        }
+
+        #map {
+            height: 450px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin: 15px auto 0 auto;
+            box-sizing: border-box;
+        }
+
+        /* Tree request confirmation messages */
+        #request-message {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        #request-message:empty {
+            display: none;
+        }
+
+        #request-message.loading {
+            background-color: #F1F5F9;
+            color: #334155;
+        }
+
+        #request-message.success {
+            background-color: #E8F5EC;
+            color: #176B4D;
+            border: 1px solid #A4D5AE;
+        }
+
+        #request-message.error {
+            background-color: #FFF1F0;
+            color: #B42318;
+            border: 1px solid #F3B6B6;
+        }
+
+        #tree-form {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #tree-form label,
+        #tree-form p {
+            text-align: center;
+        }
+
+        #tree-form input,
+        #tree-form select,
+        #tree-form textarea {
+            width: 100%;
+            max-width: 450px;
+            padding: 12px 16px;
+            margin: 8px 0 16px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background-color: #f8fafc;
+            font-family: inherit;
+            font-size: 15px;
+            color: #1e293b;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #tree-form input:focus,
+        #tree-form select:focus,
+        #tree-form textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: #fff9ee;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        #tree-form button[type="submit"], #clear-location {
+            background-color: #176B4D;
+            color: #fff9ee;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        #tree-form button[type="submit"]:hover, #clear-location:hover {
+            background-color: #12543c;
+        }
+
+    
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #fff9ee;
+            border: 2.5px solid #176B4D;
+            border-radius: 50%;
+            width: 65px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            z-index: 1000;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .home-btn:hover {
+            transform: scale(1.08);
+            background-color: #fff1d4;
+        }
+
+        .home-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+    </style>
+</head>
+
+<body>
+        <!-- Home Navigation Button -->
+    <a href="home-page.html" class="home-btn" title="Return to Homepage">
+        <img src="https://media.discordapp.net/attachments/1555451688356286545/1563783407136411648/Home_Son.png?ex=6adee249&is=6add90c9&hm=f6634cfcbb375658cd0d8828ff7f3235565fd0b5012239855da03e56766f1bcc&=&format=webp&quality=lossless" alt="Home" class="home-icon">
+    </a>
+    <div class="page-centerer">
+        <div class="card-container">
+            <h1>Hot Limit's Tree Request Form</h1>
+            <h2>🌳 Request a Tree Below 🌳</h2>
+
+            <span style="display: block; text-align: center; font-weight: bold; margin-bottom: 5px;">Help make Los Angeles County cooler!</span>
+            <p style="margin-top: 0; color: #475569;">Click below to suggest a location that needs more shade.</p>
+
+            <h3>Select a Location</h3>
+            <div id="map"></div>
+
+            <p id="selected-location" style="margin-top: 15px; font-weight: 500;">
+                No location selected yet.
+            </p>
+
+            <button type="button" id="clear-location">
+                Clear Selected Location
+            </button>
+        </div>
+
+        <div class="card-container">
+            <h3 style="margin-top: 0;">Tree Planting Request</h3>
+
+            <form id="tree-form">
+                <label for="reason">
+                    What area needs shade?
+                </label>
+                <select id="reason" required>
+                    <option value="">Select a reason</option>
+                    <option value="Bus stop">Bus Stop</option>
+                    <option value="Sidewalk">Sidewalk</option>
+                    <option value="Park">Park</option>
+                    <option value="Parking Lot">Parking Lot</option>
+                    <option value="School">School</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <p style="margin-top: 5px; margin-bottom: 5px;">Additional Information:</p>
+                <textarea id="details" maxlength="500" placeholder="Describe why this area needs trees"></textarea>
+
+                <button type="submit" id="submit-button">
+                    Submit Tree Request
+                </button>
+            </form>
+
+            <div
+                id="request-message"
+                role="status"
+                aria-live="polite">
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Supabase JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const map = L.map("map").setView(
+            [34.0522, -118.2437],
+            10
+        );
+
+        L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }
+        ).addTo(map);
+
+        let supabaseClient = null;
+
+        try {
+            if (!window.supabase) {
+                throw new Error("Supabase library did not load");
+            }
+            supabaseClient = window.supabase.createClient(
+                "https://tulazeepbxyffvrbmncr.supabase.co",
+                "sb_publishable_pmzXWRDgR5BiTQ-09aB-dA_c33px2Re"
+            );
+        } catch (error) {
+            console.error("Supabase connection error:", error);
+        }
+
+        let treeMarker = null;
+
+        map.on("click", function(event) {
+            const latitude = event.latlng.lat;
+            const longitude = event.latlng.lng;
+
+            if (treeMarker !== null) {
+                map.removeLayer(treeMarker);
+            }
+
+            treeMarker = L.marker([
+                latitude,
+                longitude
+            ]).addTo(map);
+
+            treeMarker.bindPopup(
+                "📍 Requested Tree Location"
+            ).openPopup();
+
+            document.getElementById("selected-location")
+                .textContent =
+                    "Selected Location: " +
+                    latitude.toFixed(5) +
+                    ", " +
+                    longitude.toFixed(5);
+        });
+
+        document.getElementById("clear-location")
+            .addEventListener("click", function() {
+                if (treeMarker !== null) {
+                    map.removeLayer(treeMarker);
+                    treeMarker = null;
+                }
+                document.getElementById("selected-location")
+                    .textContent = "No location selected yet.";
+            });
+
+        document.getElementById("tree-form")
+            .addEventListener("submit", async function(event) {
+                event.preventDefault();
+
+                const message = document.getElementById("request-message");
+                const button = document.getElementById("submit-button");
+
+                if (treeMarker === null) {
+                    message.className = "error";
+                    message.textContent = "Please select a location on the map first!";
+                    return;
+                }
+
+                const reason = document.getElementById("reason").value;
+                const details = document.getElementById("details").value.trim();
+                const location = treeMarker.getLatLng();
+
+                if (
+                    location.lat < 33.5 ||
+                    location.lat > 35.0 ||
+                    location.lng < -119.3 ||
+                    location.lng > -117.4
+                ) {
+                    message.className = "error";
+                    message.textContent = "Please select a location in the Los Angeles area.";
+                    return;
+                }
+
+                if (reason === "") {
+                    message.className = "error";
+                    message.textContent = "Please select a reason for your request.";
+                    return;
+                }
+
+                if (details.length > 500) {
+                    message.className = "error";
+                    message.textContent = "Your description must be 500 characters or less.";
+                    return;
+                }
+
+                const treeRequest = {
+                    latitude: location.lat,
+                    longitude: location.lng,
+                    reason: reason,
+                    details: details
+                };
+
+                if (!supabaseClient) {
+                    message.className = "error";
+                    message.textContent = "Database connection unavailable. Please try again.";
+                    return;
+                }
+
+                button.disabled = true;
+                message.className = "loading";
+                message.textContent = "Submitting your tree request...";
+
+                try {
+                    const { error } = await supabaseClient
+                        .from("tree_requests")
+                        .insert([treeRequest]);
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    message.className = "success";
+                    message.textContent =
+                        "🌳 Tree Request Submitted! " +
+                        "Your request has been received and is pending review. " +
+                        "Thank you for helping make Los Angeles cooler!";
+
+                    document.getElementById("tree-form").reset();
+                    map.removeLayer(treeMarker);
+                    treeMarker = null;
+                    document.getElementById("selected-location")
+                        .textContent = "No location selected yet.";
+
+                } catch (error) {
+                    console.error("Supabase error:", error);
+                    message.className = "error";
+                    message.textContent = "Unable to save request: " + error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            });
+    </script>
+</body>
+</html>

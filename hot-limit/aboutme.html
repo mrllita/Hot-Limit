@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Hot Limit</title>
+    <style>
+        /* Custom Font */
+        @font-face {
+            font-family: 'Handform';
+            src: url('./handform.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'Handform', sans-serif;
+            background-color: #F8F7F2;
+            padding: 20px;
+            margin: 0;
+            text-align: center;
+            color: #25342f;
+        }
+
+        /* Smaller Home Icon Button in the Top Left */
+        .home-btn {
+            position: fixed !important;
+            top: 15px !important;
+            left: 15px !important;
+            background-color: #fff9ee;
+            border: 2px solid #176B4D;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            z-index: 999999 !important;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .home-btn:hover {
+            transform: scale(1.06);
+            background-color: #fff1d4;
+        }
+
+        .home-icon {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        header h1 {
+            font-size: clamp(2rem, 3vw, 2.6rem);
+            line-height: 1.12;
+            margin-top: 10px;
+            letter-spacing: -.035em;
+            color: #176B4D;
+        }
+
+        /* Main Content Container Cards */
+        .content-container {
+            background-color: #fff9ee;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 850px;
+            box-sizing: border-box;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .content-container h2 {
+            color: #176B4D;
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+
+        .content-container p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #334155;
+            margin-bottom: 15px;
+        }
+
+        /* Mascot Row Integration */
+        .mission-row {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mission-text {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .mascot-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 160px;
+        }
+
+        .mascot-image {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .mission-row {
+                flex-direction: column;
+                text-align: center;
+            }
+            .content-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Navigation Button -->
+    <a href="home-page.html" class="home-btn" title="Return to Homepage">
+        <img src="https://media.discordapp.net/attachments/1555451688356286545/1563783407136411648/Home_Son.png?ex=6adee249&is=6add90c9&hm=f6634cfcbb375658cd0d8828ff7f3235565fd0b5012239855da03e56766f1bcc&=&format=webp&quality=lossless" alt="Home" class="home-icon">
+    </a>
+
+    <header>
+        <h1>About Hot Limit</h1>
+    </header>
+    
+    <p style="text-align:center; max-width: 750px; margin: 0 auto 20px auto; color: #50675b;">
+        Empowering Long Beach and Los Angeles County communities to stay safe, cool, and climate-resilient.
+    </p>
+
+    <!-- MISSION STATEMENT CARD -->
+    <div class="content-container">
+        <div class="mission-row">
+            <div class="mission-text">
+                <h2>Our Mission</h2>
+                <p>
+                    Hot Limit makes environmental inequity across Los Angeles County visible and helps all residents find nearby cooling centers, libraries, and other community resources. While some might think city weather affects everyone equally, it doesn't. Many individuals from low-income homes and marginalized communities face invisible but ever-present barriers that can make anyone in the heat reach their limit. 
+                </p>
+                <p>
+                    Our mission is to help communities understand the environmental inequities around them and the practical ways they can respond to them. Help us beat the heat with Hot Limit!
+                </p>
+            </div>
+            <div class="mascot-container">
+                <img src="https://cdn.discordapp.com/attachments/1555451688356286545/1563780734898937926/Sun_Son.png?ex=6adedfcc&is=6add8e4c&hm=5c93b2c5646e431bb1c8dbe703772d2b7e88f99fc4fa2c372c0b7aff8e0f59ca&" alt="Sun Son Mascot" class="mascot-image" id="mascot-img">
+            </div>
+        </div>
+    </div>
+
+    <!-- WHAT WE DO CARD -->
+    <div class="content-container">
+        <h2>What We Do</h2>
+        <p>
+            Our website features a Resources page that shows locations in LA County where people can cool down, along with advice on staying cool. Our Heat Map lets users explore local environmental conditions. Finally, our tree request page lets users suggest a location where they would like to plant a tree for future shade and explain why. These requests are then sent to and reviewed by local officials and tree-planting organizations such as City Plants.
+        </p>
+    </div>
+
+    <!-- Script to handle image loading issues -->
+    <script>
+        const mascot = document.getElementById("mascot-img");
+        mascot.addEventListener("error", function() {
+            // Fallback if Discord token expires or blocks direct hotlinking
+            mascot.src = "images/Sun_Son.png";
+        });
+    </script>
+</body>
+</html>

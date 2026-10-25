@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hot Limit Resources!</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <style>
+        
+        /* og font, background, centered layout, and map size */
+        @font-face {
+            font-family: 'Handform';
+            src: url('./handform.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        body {
+            font-family: 'Handform', sans-serif;
+            background-color: #F8F7F2;
+            padding: 20px;
+            margin: 0;
+            text-align: center;
+            color: #25342f;
+        }
+
+        /* Smaller Home Icon Button in the Top Left */
+        .home-btn {
+            position: fixed !important;
+            top: 15px !important;
+            left: 15px !important;
+            background-color: #fff9ee;
+            border: 2px solid #176B4D;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            z-index: 999999 !important;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .home-btn:hover {
+            transform: scale(1.06);
+            background-color: #fff1d4;
+        }
+
+        .home-icon {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        #map {
+            height: 540px;
+            width: 100%;
+            max-width: 1520px;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        button, input, select { font-family: inherit; }
+        .leaflet-container, .leaflet-popup-content, .leaflet-tooltip { font-family: 'Handform', sans-serif; }
+        .controls-container { margin-bottom: 20px; }
+        #find-nearest, #city-submit {
+            background-color: #176B4D;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #find-nearest:hover, #city-submit:hover { background-color: #12543C; }
+        button:disabled { opacity: .6; cursor: wait; }
+        button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+            outline: 3px solid #d69c47;
+            outline-offset: 3px;
+        }
+        #status-message {
+            margin-top: 10px;
+            font-size: 15px;
+            color: #334155;
+            font-weight: 600;
+        }
+        /* Small new controls that fit the original full-width map */
+        .extra-controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: end; margin: 16px 0 0; }
+        .extra-controls label { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+        .extra-controls select, .extra-controls input {
+            border: 1px solid #cbd5e1; border-radius: 10px; background: white;
+            padding: 12px; min-width: 180px; font-size: 16px;
+        }
+        #city-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; justify-content: center; }
+        #city-form input { width: 210px; }
+        .resource-results { max-width: 950px; margin: 16px auto; }
+        .resource-results h2 { margin: 14px 0 8px; }
+        #nearest-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        #nearest-list li { background: white; border: 1px solid #dce3d9; border-radius: 10px; padding: 12px 16px; min-width: 220px; text-align: left; flex: 1 1 250px; }
+        #nearest-list p { margin: 5px 0; }
+        #nearest-list a, .help-text a { color: #176B4D; font-weight: 700; }
+        .help-text { max-width: 950px; margin: 14px auto 0; line-height: 1.5; font-size: 14px; }
+        .help-text p { margin: 7px 0; }
+        @media (max-width: 600px) { #map { height: 400px; } #city-form { width: 100%; } .extra-controls label { flex: 1 1 180px; } }
+    </style>
+</head>
+<body>
+    <!-- Home Navigation Button -->
+    <a href="home-page.html" class="home-btn" title="Return to Homepage">
+        <img src="https://media.discordapp.net/attachments/1555451688356286545/1563783407136411648/Home_Son.png?ex=6adee249&is=6add90c9&hm=f6634cfcbb375658cd0d8828ff7f3235565fd0b5012239855da03e56766f1bcc&=&format=webp&quality=lossless" alt="Home" class="home-icon">
+    </a>
+
+    <header><h1>Find your closest public cooling spot!</h1></header>
+    <p style="text-align:center; max-width: 900px; margin: 0 auto 20px auto;">
+        This map shows Long Beach libraries and community spaces alongside available LA County cooling-center listings.
+        Click a location for directions, or find the nearest listed place. Stay cool and safe!
+    </p>
+
+    <div class="controls-container">
+        <!-- Og green button -->
+        <button id="find-nearest" type="button">📍 Find Closest Cooling Spot To Me</button>
+
+        <div class="extra-controls">
+            <label for="resource-type">Show resources
+                <select id="resource-type">
+                    <option value="all">All available locations</option>
+                    <option value="cooling">Listed cooling centers</option>
+                    <option value="library">Libraries</option>
+                    <option value="community">Community centers</option>
+                    <option value="park">Parks</option>
+                    <option value="pool">Public pools</option>
+                    <option value="pantry">Food pantries</option>
+                </select>
+            </label>
+            <form id="city-form">
+                <label for="city-name">Or enter an LA County city
+                    <input id="city-name" type="search" placeholder="Long Beach" required>
+                </label>
+                <button type="submit" id="city-submit">Search City</button>
+            </form>
+        </div>
+        <div id="status-message" role="status" aria-live="polite">Loading available locations…</div>
+    </div>
+
+    <!-- Og large, centered map stays in the same place -->
+    <div id="map" aria-label="Interactive map of nearby community resources"></div>
+    <section id="nearest-section" class="resource-results" aria-label="Nearest options" hidden>
+        <h2>Nearest available places</h2>
+        <ul id="nearest-list"></ul>
+    </section>
+    <div class="help-text">
+        <p>Official directories:
+          <a href="https://ready.lacounty.gov/heat/" target="_blank" rel="noopener noreferrer">LA County cooling centers</a> ·
+          <a href="https://parks.lacounty.gov/aquatics/" target="_blank" rel="noopener noreferrer">Public pools</a> ·
+          <a href="https://www.lafoodbank.org/find-food/" target="_blank" rel="noopener noreferrer">Food pantries</a>
+        </p>
+    </div>
+
+    <!-- Only Leaflet loads as a library -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        "use strict";
+        // Original Long Beach-centered map and OpenStreetMap tiles
+        const map = L.map('map').setView([33.80446, -118.16785], 13);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Og Long Beach locations
+        const localSpots = [
+  {
+    "name": "Los Altos Neighborhood Library",
+    "lat": 33.793,
+    "lon": -118.122,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Billie Jean King Main Library",
+    "lat": 33.7688364,
+    "lon": -118.194441,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Alamitos Neighborhood Library",
+    "lat": 33.769072,
+    "lon": -118.169042,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Ruth Bach Neighborhood Library",
+    "lat": 33.7964441,
+    "lon": -118.1254111,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Bay Shore Neighborhood Library",
+    "lat": 33.7580538,
+    "lon": -118.1305454,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Brewitt Neighborhood Library",
+    "lat": 33.7825134,
+    "lon": -118.1454513,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Burnett Neighborhood Library",
+    "lat": 33.797032,
+    "lon": -118.185948,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Dana Neighborhood Library",
+    "lat": 33.8237543,
+    "lon": -118.1849157,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "El Dorado Neighborhood Library",
+    "lat": 33.8062659,
+    "lon": -118.099091,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Harte Neighborhood Library",
+    "lat": 33.8044619,
+    "lon": -118.2141416,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Mark Twain Neighborhood Library",
+    "lat": 33.782689,
+    "lon": -118.174009,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Michelle Obama Neighborhood Library",
+    "lat": 33.861184,
+    "lon": -118.1846256,
+    "category": "library",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "El Dorado Park West",
+    "lat": 33.8057955,
+    "lon": -118.09909,
+    "category": "park",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Houghton Park Community Center",
+    "lat": 33.8682449,
+    "lon": -118.1821596,
+    "category": "community",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Long Beach Senior Center",
+    "lat": 33.7714173,
+    "lon": -118.1769442,
+    "category": "community",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "McBride Park & Community Center",
+    "lat": 33.7864683,
+    "lon": -118.1805765,
+    "category": "community",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  },
+  {
+    "name": "Silverado Park",
+    "lat": 33.8139936,
+    "lon": -118.2130439,
+    "category": "park",
+    "city": "Long Beach",
+    "address": "",
+    "listedOfficial": false
+  }
+];
+        let allSpots = [...localSpots];
+        const spotLayer = L.layerGroup().addTo(map);
+        const categoryInput = document.getElementById('resource-type');
+        const statusDiv = document.getElementById('status-message');
+        const nearestList = document.getElementById('nearest-list');
+        const nearestSection = document.getElementById('nearest-section');
+        let userMarker = null;
+        let origin = null;
+        let countyLoaded = false;
+
+        function matchesCategory(s) {
+            return categoryInput.value === 'all' || s.category === categoryInput.value;
+        }
+        function directionsURL(s) {
+            return 'https://www.google.com/maps/dir/?api=1&destination=' +
+                encodeURIComponent(s.lat + ',' + s.lon);
+        }
+        function typeName(s) {
+            return ({cooling:'Listed cooling center', library:'Library', community:'Community center',
+                    park:'Park', pool:'Public pool', pantry:'Food pantry'})[s.category] || 'Resource';
+        }
+        function makePopup(s) {
+            const box = document.createElement('div');
+            const heading = document.createElement('strong');
+            heading.textContent = s.name;
+            const details = document.createElement('p');
+            details.textContent = typeName(s) + (s.city ? ' · ' + s.city : '');
+            const a = document.createElement('a');
+            a.href = directionsURL(s);
+            a.textContent = 'Get directions';
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            box.append(heading, details);
+            if (s.address) {
+                const addr = document.createElement('p');
+                addr.textContent = s.address;
+                box.appendChild(addr);
+            }
+            if (s.hours) {
+                const hours = document.createElement('p');
+                hours.textContent = 'Listed hours: ' + s.hours;
+                box.appendChild(hours);
+            }
+            box.appendChild(a);
+            return box;
+        }
+        function redrawSpots() {
+            spotLayer.clearLayers();
+            for (const spot of allSpots.filter(matchesCategory)) {
+                spot.marker = L.marker([spot.lat, spot.lon]).addTo(spotLayer);
+                spot.marker.bindPopup(makePopup(spot));
+            }
+        }
+        function renderNearest() {
+            nearestList.replaceChildren();
+            if (!origin) { nearestSection.hidden = true; return; }
+            nearestSection.hidden = false;
+            const ranked = allSpots.filter(matchesCategory).map(s => ({
+                spot: s, meters: map.distance([origin.lat, origin.lon], [s.lat, s.lon])
+            })).sort((a,b) => a.meters - b.meters).slice(0, 5);
+            if (!ranked.length) {
+                const empty = document.createElement('li');
+                empty.textContent = 'No locations loaded for this category yet. Try another category or use the official directories below.';
+                nearestList.appendChild(empty);
+                statusDiv.textContent = 'No matches in the loaded dataset.';
+                return;
+            }
+            for (const {spot, meters} of ranked) {
+                const li = document.createElement('li');
+                const name = document.createElement('strong');
+                name.textContent = spot.name;
+                const info = document.createElement('p');
+                info.textContent = typeName(spot) + ' · ' + (meters/1609.344).toFixed(1) + ' mi (straight line)';
+                const link = document.createElement('a');
+                link.textContent = 'Directions'; link.href = directionsURL(spot);
+                link.target = '_blank'; link.rel = 'noopener noreferrer';
+                li.append(name,info,link);
+                const show = document.createElement('button');
+                show.type='button'; show.textContent='Show on map';
+                show.style.cssText='display:block;margin-top:8px;padding:6px 9px;background:#176B4D;color:white;border:0;border-radius:7px;cursor:pointer;';
+                show.addEventListener('click',()=>{map.setView([spot.lat,spot.lon],14);spot.marker.openPopup();});
+                li.append(show);
+                nearestList.append(li);
+            }
+            const first = ranked[0];
+            statusDiv.textContent = 'Nearest loaded ' + (categoryInput.value === 'all' ? 'resource' : typeName(first.spot).toLowerCase()) +
+                ': ' + first.spot.name + ' (~' + (first.meters/1609.344).toFixed(1) + ' miles straight line).';
+            map.fitBounds(L.latLngBounds([[origin.lat,origin.lon],[first.spot.lat,first.spot.lon]]).pad(.18), {maxZoom:14});
+        }
+        function useOrigin(lat,lon,label) {
+            if (userMarker) map.removeLayer(userMarker);
+            userMarker = L.circleMarker([lat,lon], {
+                radius:8,color:'white',weight:3,fillColor:'#147bd1',fillOpacity:1
+            }).addTo(map).bindPopup(label);
+            origin = {lat,lon,label};
+            redrawSpots();
+            renderNearest();
+        }
+        document.getElementById('find-nearest').addEventListener('click',()=>{
+            if (!navigator.geolocation) { statusDiv.textContent='Location unavailable in this browser. Search by city instead.'; return; }
+            if (!window.isSecureContext) { statusDiv.textContent='Location requires HTTPS or localhost. Search by city instead.'; return; }
+            statusDiv.textContent = 'Finding your approximate location…';
+            navigator.geolocation.getCurrentPosition(p => {
+                useOrigin(p.coords.latitude,p.coords.longitude,'Your approximate location');
+            }, () => {statusDiv.textContent='Location unavailable or permission denied. Search by city instead.';},
+            {enableHighAccuracy:false,timeout:12000,maximumAge:60000});
+        });
+        document.getElementById('city-form').addEventListener('submit',async event=>{
+            event.preventDefault();
+            const query=document.getElementById('city-name').value.trim();
+            if (!query) return;
+            const button=document.getElementById('city-submit');
+            button.disabled=true;
+            statusDiv.textContent='Looking up the city…';
+            try {
+                const url=new URL('https://geocoding-api.open-meteo.com/v1/search');
+                url.searchParams.set('name',query.split(',')[0].trim());
+                url.searchParams.set('countryCode','US');
+                url.searchParams.set('count','20');
+                const response=await fetch(url);
+                if(!response.ok) throw new Error('City search unavailable');
+                const data=await response.json();
+                const found=(data.results||[]).find(x=>x.admin1==='California' &&
+                    x.latitude>=33.5 && x.latitude<=35 && x.longitude>=-119.3 && x.longitude<=-117.4 &&
+                    (String(x.admin2||'').includes('Los Angeles') || x.name.toLowerCase() === 'long beach'));
+                if(!found) throw new Error('No LA County city match found');
+                useOrigin(found.latitude,found.longitude,found.name+', California city center');
+            } catch(e) {
+                console.error(e);
+                statusDiv.textContent = e.message + '. Try Long Beach, Pasadena, or Use My Location.';
+            } finally {button.disabled=false;}
+        });
+        categoryInput.addEventListener('change',()=>{
+            redrawSpots();
+            if (origin) renderNearest();
+            else statusDiv.textContent=allSpots.filter(matchesCategory).length + ' mapped locations in this category. Use location or city search to find the nearest.';
+        });
+
+        function isValidSpot(s) {
+            return s && typeof s.name === 'string' && s.name.trim().length > 0 &&
+                Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lon)) &&
+                Math.abs(Number(s.lat))<=90 && Math.abs(Number(s.lon))<=180 &&
+                ['cooling','library','community','park','pool','pantry'].includes(s.category);
+        }
+        async function loadLocations() {
+            // County data file already used by the project's environmental map.[cite: 3]
+            try {
+                const response=await fetch('environmental-map/data/cooling_centers.json');
+                if(!response.ok) throw new Error('HTTP '+response.status);
+                const county=await response.json();
+                if(!Array.isArray(county)) throw new Error('Not an array');
+                const good=county.filter(c=>isValidSpot({...c,category:'cooling'}))
+                  .map(c=>({name:c.name,lat:Number(c.lat),lon:Number(c.lon),
+                    category:'cooling',city:c.city||'',address:c.address||'',hours:c.hours||''}));
+                allSpots.push(...good);
+                countyLoaded = true;
+            } catch(e) {
+                console.warn('County cooling center file unavailable:',e);
+                statusDiv.textContent = 'County cooling-center list not loaded; showing existing Long Beach locations. Check environmental-map/data/cooling_centers.json.';
+            }
+            // Optional manually verified facilities for pool / food pantry categories
+            try {
+                const response=await fetch('resource_extra_locations.json');
+                if(response.ok) {
+                    const extra=await response.json();
+                    if(Array.isArray(extra)) allSpots.push(...extra.filter(isValidSpot).map(s=>({...s,lat:Number(s.lat),lon:Number(s.lon)})));
+                }
+            } catch(e) {console.warn('Optional extra locations unavailable:',e);}
+            const unique=new Set();
+            allSpots=allSpots.filter(s=>{
+                const key=s.category+'|'+s.name.toLowerCase()+'|'+Number(s.lat).toFixed(4)+'|'+Number(s.lon).toFixed(4);
+                if(unique.has(key)) return false; unique.add(key); return true;
+            });
+            redrawSpots();
+            if(origin) renderNearest();
+            else statusDiv.textContent = allSpots.filter(matchesCategory).length + ' mapped locations loaded' +
+                (countyLoaded ? ' (including county cooling-center listings).' : ' (Long Beach listings only until county data loads).');
+        }
+        redrawSpots();
+        loadLocations();
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore environmental burden across Los Angeles County using CalEnviroScreen 4.0.">
+  <title>Environmental Map | Hot Limit</title>
+  <!-- HTML = structure. CSS = appearance. JavaScript = behavior. -->
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="environmental-map.css">
+  <script src="vendor/leaflet/leaflet.js" defer></script>
+  <script src="environmental-map.js" defer></script>
+</head>
+<body class="env-map-page">
+  <!-- Home Navigation Button -->
+  <a href="../home-page.html" class="home-btn" title="Return to Homepage">
+      <img src="https://media.discordapp.net/attachments/1555451688356286545/1563783407136411648/Home_Son.png?ex=6adee249&is=6add90c9&hm=f6634cfcbb375658cd0d8828ff7f3235565fd0b5012239855da03e56766f1bcc&=&format=webp&quality=lossless" alt="Home" class="home-icon">
+  </a>
+
+  <main class="em-shell">
+    <header class="em-header">
+      <div>
+        <p class="em-eyebrow">Hot Limit / Los Angeles County</p>
+        <h1>Environmental map</h1>
+        <p class="em-intro">Explore environmental burden and community vulnerability across LA County.</p>
+      </div>
+      <span class="em-source-badge">CalEnviroScreen 4.0</span>
+    </header>
+
+    <section aria-label="Find an area" class="em-search-row">
+      <form id="em-search-form" class="em-search">
+        <label for="em-search-input" class="em-sr-only">LA County place name, cooling center, or census tract number</label>
+        <input id="em-search-input" type="search" placeholder="Place name or tract number" autocomplete="off" disabled>
+        <button type="submit" id="em-search-button" disabled>Search</button>
+      </form>
+      <button type="button" id="em-locate" class="em-primary" disabled>Use my location</button>
+    </section>
+
+    <div class="em-toolbar">
+      <!-- data-indicator tells JavaScript which dataset field to display. -->
+      <div class="em-filters" role="group" aria-label="Map indicator">
+        <button type="button" data-indicator="vulnerability" aria-pressed="true" disabled>Overall burden</button>
+        <button type="button" data-indicator="pollution_pctl" aria-pressed="false" disabled>Pollution</button>
+        <button type="button" data-indicator="poverty_pctl" aria-pressed="false" disabled>Poverty</button>
+        <button type="button" data-indicator="asthma_pctl" aria-pressed="false" disabled>Asthma</button>
+        <button type="button" data-indicator="population_char_pctl" aria-pressed="false" disabled>Population characteristics</button>
+      </div>
+      <label class="em-toggle"><input id="em-cooling-toggle" type="checkbox" checked disabled> Cooling centers</label>
+    </div>
+    <p id="em-status" class="em-status" role="status">Loading LA County map data…</p>
+
+    <div class="em-workspace">
+      <section class="em-map-column" aria-label="Environmental burden map">
+        <div class="em-map-frame">
+          <div id="em-map" aria-label="Interactive LA County map. Pan and zoom, or search a tract using the form above."></div>
+          <button type="button" id="em-county-view" class="em-map-button" disabled>View all LA County</button>
+        </div>
+        <div class="em-legend" aria-label="Map color legend">
+          <div class="em-legend-heading"><strong id="em-legend-title">Overall burden percentile</strong><span>Lower → higher</span></div>
+          <div class="em-color-ramp" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="em-legend-ticks" aria-hidden="true"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span></div>
+          <div class="em-legend-keys"><span><i class="em-no-data-key"></i>Data unavailable</span><span><i class="em-dot-key"></i>Cooling center</span></div>
+        </div>
+        <p class="em-map-help">Select a colored area to see its data. Gray means unavailable data. This map shows historical environmental indicators.</p>
+      </section>
+
+      <aside class="em-sidebar" aria-label="Selected area information">
+        <section class="em-card" aria-labelledby="em-area-name">
+          <p id="em-selection-label" class="em-eyebrow">Selected area</p>
+          <h2 id="em-area-name">Select a census tract</h2>
+          <p id="em-area-context" class="em-muted">Tap the map or search a tract number.</p>
+          <div class="em-score" id="em-main-score">—</div>
+          <p id="em-score-label" class="em-score-label">Overall burden percentile</p>
+          <dl class="em-stat-grid">
+            <div><dt>Pollution percentile</dt><dd id="em-pollution">—</dd></div>
+            <div><dt>Poverty percentile</dt><dd id="em-poverty">—</dd></div>
+          </dl>
+          <div class="em-card-footer"><span>Residents: <strong id="em-population">—</strong></span><span id="em-geoid"></span></div>
+        </section>
+        <section class="em-card" aria-labelledby="em-details-heading">
+          <h2 id="em-details-heading">Area details</h2>
+          <dl class="em-details">
+            <div><dt>Population characteristics percentile</dt><dd id="em-pop-char">—</dd></div>
+            <div><dt>Asthma indicator percentile</dt><dd id="em-asthma">—</dd></div>
+            <div><dt>Residents aged 65+</dt><dd id="em-elderly">—</dd></div>
+          </dl>
+          <p class="em-note">Percentiles compare California census tracts. A higher percentile means a greater relative burden or vulnerability.</p>
+        </section>
+        <section id="em-nearest-card" class="em-card" hidden aria-labelledby="em-nearest-heading">
+          <p class="em-eyebrow">From your location</p>
+          <h2 id="em-nearest-heading">Nearest listed cooling center</h2>
+          <p id="em-nearest-name"></p><p id="em-nearest-distance" class="em-muted"></p>
+          <button type="button" id="em-nearest-button" class="em-secondary">Show on map</button>
+          <p class="em-note">Confirm current hours and availability with the provider.</p>
+        </section>
+      </aside>
+    </div>
+    <footer class="em-footer">
+      <p>Source: <a href="https://oehha.ca.gov/calenviroscreen/report/calenviroscreen-40" target="_blank" rel="noopener noreferrer">California OEHHA, CalEnviroScreen 4.0</a>. Historical indicators on 2010 census tract geography.</p>
+      <p>Cooling-center listings: <a href="https://ready.lacounty.gov/heat/" target="_blank" rel="noopener noreferrer">LA County</a>. Source retrieved October 24, 2026.</p>
+    </footer>
+    <noscript><p class="em-error">Enable JavaScript to use this map.</p></noscript>
+  </main>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hot Limit | Stay Cool Long Beach</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+
+        /* About Us Button Styling */
+        .about-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #176B4D;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.2s, transform 0.2s;
+            margin: 10px;
+        }
+
+        .about-btn:hover {
+            background-color: #12543C;
+            transform: scale(1.03);
+        }
+        /* DEFINE CUSTOM FONT */
+        @font-face { 
+            font-family: 'Handform'; 
+            src: url('./handform.ttf') format('truetype'); 
+            font-weight: normal; 
+            font-style: normal; 
+        } 
+
+        body { 
+            font-family: 'Handform', sans-serif; 
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            place-items: center; 
+            background-color: #fff1d4; /* Overall page background */
+        }
+
+        .page-centerer {
+            text-align: center;
+            width: 100%;
+            max-width: 850px;
+        }
+
+        /* SIDE-BY-SIDE CONTAINER FOR TIME AND WEATHER */
+        .top-info-row {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 15px;
+            flex-wrap: wrap; /* Automatically stacks on smaller mobile screens */
+        }
+
+        /* CONTAINER CARD WITH #fff9ee BACKGROUND */
+        .card-container {
+            background-color: #fff9ee;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            box-sizing: border-box;
+            margin: 15px auto;
+            text-align: center;
+        }
+
+        /* Make individual cards inside the flex row share equal space */
+        .top-info-row .card-container {
+            flex: 1;
+            min-width: 280px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Mascot image styling */
+        .mascot-image {
+            width: 250px;
+            height: 250px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Flex container for mascot section */
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Navigation buttons */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        a.cta-button, button[type="submit"] {
+            display: inline-block;
+            background-color: #176B4D;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        a.cta-button:hover, button[type="submit"]:hover {
+            background-color: #12543C;
+        }
+
+        /* Weather Section Inputs */
+        .weatherForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .cityInput {
+            width: 100%;
+            max-width: 450px;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background-color: #ffffff;
+            font-family: inherit;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        /* Weather Result Card Styling */
+        .weather-section .card:not(:empty) {
+            margin-top: 15px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-centerer">
+        
+        <!-- SIDE-BY-SIDE ROW FOR TIME (LEFT) AND WEATHER (RIGHT) -->
+        <div class="top-info-row">
+            
+            <!-- LEFT SIDE: CURRENT TIME -->
+            <div class="card-container">
+                <h2>Current PST Time</h2>
+                <h1 id="current-time">--:--:--</h1>
+            </div>
+
+            <!-- RIGHT SIDE: WEATHER SEARCH -->
+            <div class="card-container">
+                <section class="weather-section">
+                    <h2>Check Your City's Weather</h2>
+                    <form class="weatherForm">
+                        <input
+                            type="text"
+                            class="cityInput"
+                            placeholder="Enter city (e.g. Long Beach)"
+                            aria-label="City name"
+                            required
+                        >
+                        <button type="submit">
+                            Get Weather
+                        </button>
+                    </form>
+                    <!-- Weather results will render here -->
+                    <div class="card" aria-live="polite"></div>
+                </section>
+            </div>
+
+        </div>
+
+        <!-- LOWER CARD: MASCOT & NAVIGATION BUTTONS -->
+        <div class="card-container">
+            <div class="flex-container">
+                <img
+                    id="mascot-image"
+                    src="images/Hello_Son.png"
+                    alt="Son, the Hot Limit mascot"
+                    class="mascot-image"
+                >
+                <div class="text-container">
+                    <h1>Hey, I'm Son!</h1>
+                    <p>
+                        Reaching your Hot Limit?<br>
+                        Check out my tools to keep cool!
+                    </p>
+                </div>
+            </div>
+
+            <!-- NAVIGATION BUTTONS -->
+             <!-- Link to About Us Page -->
+             <a href="aboutme.html" class="about-btn" title="Learn more about Hot Limit"> ☀️ About Us</a>
+            <nav class="button-container">
+                <a href="resource.html" class="cta-button">
+                   🔍 Resources
+                </a>
+                <a type="button"
+                    class="cta-button"
+                    onclick="window.location.href='environmental-map/index.html'">
+                    🔥 Environmental Map
+                </a>
+                <a href="tree-request.html" class="cta-button">
+                    🌳 Submit a Tree Request
+                </a>
+            </nav>
+        </div>
+
+    </div>
+
+    <!-- WEATHER FUNCTIONALITY SCRIPT -->
+    <script>
+        document.querySelector(".weatherForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const cityInput = document.querySelector(".cityInput").value.trim();
+            const weatherCard = document.querySelector(".weather-section .card");
+
+            if (!cityInput) return;
+
+            weatherCard.innerHTML = "<p style='text-align: center; color: #64748b;'>Loading weather...</p>";
+
+            try {
+                const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=en&format=json`);
+                const geoData = await geoResponse.json();
+
+                if (!geoData.results || geoData.results.length === 0) {
+                    weatherCard.innerHTML = `<p style="color: #B42318; text-align: center;">City not found. Please try another location.</p>`;
+                    return;
+                }
+
+                const { latitude, longitude, name, admin1, country } = geoData.results[0];
+
+                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&temperature_unit=fahrenheit`);
+                const weatherData = await weatherResponse.json();
+
+                const tempF = weatherData.current.temperature_2m;
+                const humidity = weatherData.current.relative_humidity_2m;
+
+                weatherCard.innerHTML = `
+                    <div style="padding: 12px 16px; background-color: #ffffff; border-radius: 10px; border: 1px solid #cbd5e1;">
+                        <h3 style="margin: 0 0 8px 0; color: #176B4D; font-size: 18px;">${name}, ${admin1 || country}</h3>
+                        <p style="margin: 4px 0; font-size: 16px;"><strong>Temperature:</strong> ${tempF}°F</p>
+                        <p style="margin: 4px 0; font-size: 16px;"><strong>Humidity:</strong> ${humidity}%</p>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Weather fetch error:", error);
+                weatherCard.innerHTML = `<p style="color: #B42318; text-align: center;">Could not retrieve weather data. Please try again later.</p>`;
+            }
+        });
+    </script>
+
+    <script>
+        // DISCORD MASCOT IMAGE SCRIPT
+        const discordMascotUrl = "https://cdn.discordapp.com/attachments/1555451688356286545/1563612725777797220/Hello_Son.png?ex=6ade4354&is=6adcf1d4&hm=ea2bd59d4e2f02ee211030566f9906349a4ba77150f5f3b8903f551079947984&";
+        const mascotImage = document.getElementById("mascot-image");
+
+        if (discordMascotUrl) {
+            mascotImage.addEventListener("error", function() {
+                mascotImage.src = "images/Hello_Son.png";
+            }, { once: true });
+            mascotImage.src = discordMascotUrl;
+        }
+
+        // LONG BEACH CLOCK SCRIPT
+        const timeDisplay = document.getElementById("current-time");
+
+        function updateTime() {
+            const now = new Date();
+            const longBeachTime = new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Los_Angeles",
+                hour: "numeric",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true
+            }).format(now);
+            timeDisplay.textContent = longBeachTime;
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
